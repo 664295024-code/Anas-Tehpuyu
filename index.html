@@ -192,6 +192,15 @@
         </div>
     </div>
 
+    <!-- Fav Modal -->
+    <div id="fav-modal" class="fixed inset-0 z-[160] flex items-center justify-center p-4 opacity-0 pointer-events-none transform scale-95 transition-all duration-300">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden">
+            <button onclick="toggleFavModal()" class="absolute top-6 right-6 text-gray-400 hover:text-black"><i class="fas fa-times text-xl"></i></button>
+            <h3 class="text-2xl font-black italic uppercase mb-6">Favorites</h3>
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scroll pr-2" id="fav-list-container"></div>
+        </div>
+    </div>
+
     <!-- Checkout Modal -->
     <div id="checkout-modal" class="fixed inset-0 z-[130] flex items-center justify-center p-4 opacity-0 pointer-events-none transform scale-95 transition-all duration-300">
         <div class="bg-white w-full max-w-4xl rounded-[3.5rem] shadow-2xl p-8 sm:p-12 relative overflow-y-auto max-h-[95vh] custom-scroll">
@@ -240,6 +249,13 @@
                                 <i class="fas fa-qrcode text-lg mb-2"></i>
                                 <p class="text-[8px] font-black uppercase italic">QR</p>
                             </div>
+                        </div>
+
+                        <!-- เพิ่มส่วนแสดง QR Code จำลอง -->
+                        <div id="qr-payment-section" class="hidden mt-4 bg-white border-2 border-brand-500 rounded-2xl p-6 text-center shadow-lg transition-all duration-300">
+                            <p class="text-[10px] font-black uppercase text-brand-500 italic mb-3">Scan to Pay</p>
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SNEAKERZ-DUMMY-QR-CODE" alt="PromptPay QR Code" class="mx-auto w-32 h-32 rounded-xl shadow-sm border border-gray-100 p-2 mb-2">
+                            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">SNEAKERZ OFFICIAL</p>
                         </div>
                     </div>
                 </div>
@@ -314,7 +330,9 @@
             { id: 7, name: 'Nike Air Zoom Pegasus', price: 4700, category: 'Running', img: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80', tag: 'Best Seller', colors: ['#3ef542', '#000000', '#FFFFFF'], reviews: [], desc: 'The workhorse with wings returns with classic Pegasus fit.' },
             { id: 8, name: 'Reebok Nano X2', price: 4500, category: 'Training', img: 'https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=800&q=80', tag: 'Endurance', colors: ['#000000', '#FFFFFF', '#FF5722'], reviews: [], desc: 'Versatile training shoe built for any way you work out.' },
             { id: 9, name: 'New Balance 530', price: 3800, category: 'Lifestyle', img: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=800&q=80', tag: 'Trend', colors: ['#FFFFFF', '#C0C0C0'], reviews: [], desc: 'Bringing back the classic 90s running shoe style.' },
-            { id: 10, name: 'Nike Kyrie 7', price: 5200, category: 'Basketball', img: 'https://images.unsplash.com/photo-1605408499391-6368c628ef42?w=800&q=80', tag: 'Agility', colors: ['#FFFF00', '#FF00FF', '#00FFFF'], reviews: [], desc: 'Designed for the next generation of court speed and control.' }
+            { id: 10, name: 'Nike Kyrie 7', price: 5200, category: 'Basketball', img: 'https://images.unsplash.com/photo-1605408499391-6368c628ef42?w=800&q=80', tag: 'Agility', colors: ['#FFFF00', '#FF00FF', '#00FFFF'], reviews: [], desc: 'Designed for the next generation of court speed and control.' },
+            { id: 12, name: 'SNEAKERZ Custom Edition', price: 6500, category: 'Lifestyle', img: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&q=80', tag: 'Exclusive', colors: ['#000000', '#FFFFFF', '#FF5722'], reviews: [], desc: 'ดีไซน์ลิมิเต็ดสุดพิเศษ มีเฉพาะที่นี่เท่านั้น' },
+            { id: 13, name: 'Vans Old Skool Classic', price: 2800, category: 'Lifestyle', img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&q=80', tag: 'Must Have', colors: ['#000000', '#FFFFFF', '#FF0000'], reviews: [], desc: 'รองเท้าสเก็ตบอร์ดสุดคลาสสิกที่ได้รับความนิยมตลอดกาล แมตช์ได้ทุกลุค' }
         ];
 
         const memberCoupons = [
@@ -628,7 +646,32 @@
                 container.innerHTML = `<div class="bg-gray-50 p-6 rounded-3xl border border-dashed border-gray-200 text-center text-[10px] font-bold uppercase italic text-gray-300">ไม่มีประวัติการสั่งซื้อ</div>`;
                 return;
             }
-            container.innerHTML = orders.map(order => `
+            
+            const statuses = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+            
+            container.innerHTML = orders.map(order => {
+                const currentStatusIndex = statuses.indexOf(order.status) !== -1 ? statuses.indexOf(order.status) : 0;
+                
+                // สร้าง UI สำหรับ Timeline การติดตามสถานะ
+                let trackingHtml = '<div class="mt-4 pt-4 border-t border-gray-50">';
+                trackingHtml += '<div class="flex items-center justify-between px-1 mb-2">';
+                statuses.forEach((st, idx) => {
+                    const isActive = idx <= currentStatusIndex;
+                    trackingHtml += `<span class="text-[8px] font-bold uppercase ${isActive ? 'text-brand-500' : 'text-gray-300'}">${st}</span>`;
+                });
+                trackingHtml += '</div><div class="flex items-center px-3">';
+                
+                for(let i=0; i<statuses.length; i++) {
+                    const isDotActive = i <= currentStatusIndex;
+                    trackingHtml += `<div class="status-dot ${isDotActive ? 'active' : ''}"></div>`;
+                    if (i < statuses.length - 1) {
+                        const isLineActive = i < currentStatusIndex;
+                        trackingHtml += `<div class="progress-line ${isLineActive ? 'active' : ''}"></div>`;
+                    }
+                }
+                trackingHtml += '</div></div>';
+
+                return `
                 <div class="bg-white border border-gray-100 rounded-[2rem] p-5 shadow-sm space-y-2">
                     <div class="flex justify-between items-start">
                         <div>
@@ -640,10 +683,21 @@
                             <p class="text-[8px] text-gray-400 font-bold uppercase">${order.items.length} Items</p>
                         </div>
                     </div>
-                </div>`).join('');
+                    ${trackingHtml}
+                </div>`;
+            }).join('');
         }
 
-        function selectPayment(type) { document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active')); document.getElementById('pay-' + type).classList.add('active'); }
+        function selectPayment(type) { 
+            document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active')); 
+            document.getElementById('pay-' + type).classList.add('active'); 
+            
+            // แสดง/ซ่อน QR Code ตามประเภทที่เลือก
+            const qrSection = document.getElementById('qr-payment-section');
+            if (qrSection) {
+                qrSection.classList.toggle('hidden', type !== 'prompt');
+            }
+        }
         function toggleModal(id) { const m = document.getElementById(id); const isShow = m.classList.toggle('modal-show'); toggleOverlay(isShow); }
         function toggleCart() { const s = document.getElementById('cart-sidebar'); const isOpen = s.classList.toggle('cart-open'); toggleOverlay(isOpen); }
         function toggleOverlay(show) {
@@ -656,6 +710,30 @@
         function toggleCheckoutModal() { toggleModal('checkout-modal'); }
         function toggleFav(id) { favs.has(id) ? favs.delete(id) : favs.add(id); const b = document.getElementById('fav-badge'); b.innerText = favs.size; b.classList.toggle('hidden', !favs.size); renderProducts(); }
         
+        function toggleFavModal() {
+            renderFavs();
+            toggleModal('fav-modal');
+        }
+
+        function renderFavs() {
+            const container = document.getElementById('fav-list-container');
+            if (favs.size === 0) {
+                container.innerHTML = '<p class="text-center py-10 text-gray-300 text-[10px] font-bold uppercase italic">ไม่มีสินค้าที่ชื่นชอบ</p>';
+                return;
+            }
+            const favItems = products.filter(p => favs.has(p.id));
+            container.innerHTML = favItems.map(item => `
+                <div class="flex gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100 items-center">
+                    <img src="${item.img}" onerror="imgError(this)" class="w-14 h-14 rounded-xl object-cover cursor-pointer" onclick="openDetail(${item.id}); toggleFavModal();">
+                    <div class="flex-1 cursor-pointer" onclick="openDetail(${item.id}); toggleFavModal();">
+                        <h4 class="font-black text-[10px] uppercase italic truncate hover:text-brand-500">${item.name}</h4>
+                        <p class="text-brand-500 font-black text-xs mt-1">฿${item.price.toLocaleString()}</p>
+                    </div>
+                    <button onclick="toggleFav(${item.id}); renderFavs();" class="text-red-500 hover:text-gray-300"><i class="fas fa-heart text-xs"></i></button>
+                </div>
+            `).join('');
+        }
+
         function toast(m) {
             const t = document.createElement('div');
             t.className = 'fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase italic z-[200] shadow-2xl';
